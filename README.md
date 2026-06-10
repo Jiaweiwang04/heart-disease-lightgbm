@@ -8,7 +8,7 @@ This project explores the UCI Heart Disease dataset and aims to build a binary c
 
 - [x] Data loading
 - [x] Exploratory Data Analysis
-- [ ] Data preprocessing
+- [x] Data preprocessing
 - [ ] Baseline models
 - [ ] LightGBM model
 - [ ] Model evaluation
