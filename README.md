@@ -4,7 +4,7 @@
 
 This project uses the UCI Heart Disease dataset to build a binary classification workflow for predicting whether a patient has heart disease.
 
-The current work has completed exploratory analysis, preprocessing, baseline model training, and baseline evaluation. The next stage is to train and evaluate a LightGBM model against the existing baselines.
+The current work has completed exploratory analysis, preprocessing, baseline model training and evaluation, and the first untuned LightGBM model. The next stage is to improve model development and add interpretability with SHAP.
 
 In medical risk prediction, false negatives are particularly important because they represent patients with heart disease who are incorrectly classified as low-risk.
 
@@ -15,9 +15,10 @@ In medical risk prediction, false negatives are particularly important because t
 - [x] Data preprocessing
 - [x] Baseline model training
 - [x] Baseline model evaluation
-- [ ] LightGBM model training
-- [ ] LightGBM evaluation
-- [ ] Feature importance and SHAP analysis
+- [x] LightGBM model training
+- [x] LightGBM evaluation
+- [x] LightGBM feature importance
+- [ ] SHAP analysis
 
 ## Dataset
 
@@ -82,9 +83,25 @@ Baseline models trained:
 - Random Forest
 - XGBoost
 
-The baseline notebook now uses reusable evaluation functions for metrics, confusion matrices, ROC curves, and report generation.
+### 4. First LightGBM Model
 
-## Baseline Results
+Notebook:
+
+- `notebooks/04_lightgbm_baseline.ipynb`
+
+The LightGBM notebook reuses the existing processed train/test split. It does not redo preprocessing or create a new train/test split, so the comparison remains aligned with the baseline models.
+
+Initial LightGBM settings:
+
+- `objective="binary"`
+- `n_estimators=100`
+- `learning_rate=0.05`
+- `num_leaves=31`
+- `random_state=42`
+
+No hyperparameter tuning has been performed yet.
+
+## Model Comparison Results
 
 Held-out test set results:
 
@@ -93,14 +110,18 @@ Held-out test set results:
 | Logistic Regression | 0.842 | 0.835 | 0.892 | 0.863 | 0.926 | 11 |
 | Random Forest | 0.848 | 0.849 | 0.882 | 0.865 | 0.928 | 12 |
 | XGBoost | 0.859 | 0.852 | 0.902 | 0.876 | 0.901 | 10 |
+| LightGBM | 0.842 | 0.848 | 0.873 | 0.860 | 0.928 | 13 |
 
-From a medical-risk perspective, XGBoost currently has the strongest recall and the fewest false negatives among the baseline models.
+The first untuned LightGBM model has competitive ROC-AUC, but it does not improve the medical-risk-focused metrics. XGBoost currently has the highest recall and the fewest false negatives.
 
-Generated baseline evaluation outputs:
+Generated evaluation outputs:
 
 - `reports/results.md`
 - `reports/figures/baseline_confusion_matrices.png`
 - `reports/figures/baseline_roc_curve.png`
+- `reports/figures/lightgbm_confusion_matrix.png`
+- `reports/figures/lightgbm_roc_curve.png`
+- `reports/figures/lightgbm_feature_importance.png`
 
 ## Repository Structure
 
@@ -113,18 +134,23 @@ Generated baseline evaluation outputs:
 
 ## Environment
 
+The notebooks have been validated with the conda environment:
 
-The baseline workflow depends on:
+```powershell
+conda activate ml
+```
+
+The current workflow depends on:
 
 - pandas
 - scikit-learn
 - xgboost
+- lightgbm
 - matplotlib
 
 ## Next Steps
 
-- Train a LightGBM classifier
-- Compare LightGBM against the baseline models
-- Focus evaluation on recall and false negatives
-- Add feature importance analysis
-- Add SHAP interpretation
+- Investigate whether threshold tuning can reduce false negatives
+- Tune LightGBM hyperparameters after establishing the baseline
+- Compare tuned LightGBM against XGBoost and Logistic Regression
+- Add SHAP interpretation as a future interpretability step

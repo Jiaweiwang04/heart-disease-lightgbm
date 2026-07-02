@@ -100,7 +100,7 @@ def plot_confusion_matrix(
     return fig, axes
 
 
-def plot_roc_curve(models, X_test, y_test, save_path=None):
+def plot_roc_curve(models, X_test, y_test, save_path=None, title="ROC Curves"):
     """Plot ROC curves for a mapping of fitted binary classifiers."""
     fig, ax = plt.subplots(figsize=(7, 5))
 
@@ -111,7 +111,7 @@ def plot_roc_curve(models, X_test, y_test, save_path=None):
         ax.plot(fpr, tpr, linewidth=2, label=f"{model_name} (AUC={roc_auc:.3f})")
 
     ax.plot([0, 1], [0, 1], linestyle="--", color="gray", linewidth=1)
-    ax.set_title("Baseline ROC Curves")
+    ax.set_title(title)
     ax.set_xlabel("False Positive Rate")
     ax.set_ylabel("True Positive Rate")
     ax.legend(loc="lower right")
@@ -129,15 +129,27 @@ def plot_roc_curve(models, X_test, y_test, save_path=None):
 def _dataframe_to_markdown(df):
     """Render a small DataFrame as a GitHub-flavored Markdown table."""
     columns = list(df.columns)
-    rows = [[str(value) for value in row] for row in df.to_numpy()]
+
+    def format_value(value):
+        if isinstance(value, float):
+            return f"{value:.3f}"
+        return str(value)
+
+    rows = [[format_value(value) for value in row] for row in df.to_numpy()]
     header = "| " + " | ".join(columns) + " |"
     separator = "| " + " | ".join(["---"] * len(columns)) + " |"
     body = ["| " + " | ".join(row) + " |" for row in rows]
     return "\n".join([header, separator, *body])
 
 
-def write_results_markdown(results_df, output_path):
-    """Write baseline metrics and medical-risk notes to a Markdown report."""
+def write_results_markdown(
+    results_df,
+    output_path,
+    title="Baseline Model Results",
+    model_group_name="baseline models",
+    best_model_label="baseline",
+):
+    """Write model metrics and medical-risk notes to a Markdown report."""
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -150,17 +162,17 @@ def write_results_markdown(results_df, output_path):
     ).iloc[0]
 
     content = [
-        "# Baseline Model Results",
+        f"# {title}",
         "",
         "In medical risk prediction, false negatives are particularly important because they represent patients with heart disease who are incorrectly classified as low-risk.",
         "",
-        "The table below compares the baseline models on the held-out test set.",
+        f"The table below compares the {model_group_name} on the held-out test set.",
         "",
         _dataframe_to_markdown(display_df),
         "",
         "## Medical-Risk Focus",
         "",
-        f"The highest-recall baseline is **{best_recall['Model']}** with recall **{best_recall['Recall']:.3f}** and **{int(best_recall['False Negatives'])}** false negatives.",
+        f"The highest-recall {best_model_label} is **{best_recall['Model']}** with recall **{best_recall['Recall']:.3f}** and **{int(best_recall['False Negatives'])}** false negatives.",
         "",
         "Recall is emphasized because it measures how many true heart-disease cases are detected. False negatives are emphasized because they are the missed disease cases.",
         "",
