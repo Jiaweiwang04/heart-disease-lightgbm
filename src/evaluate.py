@@ -46,6 +46,26 @@ def evaluate_model(model_name, model, X_train, y_train, X_test, y_test):
     }
 
 
+def evaluate_scores_at_threshold(model_name, y_true, y_score, threshold):
+    """Evaluate binary probability scores after applying a custom threshold."""
+    y_pred = (y_score >= threshold).astype(int)
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+
+    return {
+        "Model": model_name,
+        "Threshold": threshold,
+        "Accuracy": accuracy_score(y_true, y_pred),
+        "Precision": precision_score(y_true, y_pred, zero_division=0),
+        "Recall": recall_score(y_true, y_pred, zero_division=0),
+        "F1": f1_score(y_true, y_pred, zero_division=0),
+        "ROC-AUC": roc_auc_score(y_true, y_score),
+        "True Negatives": int(tn),
+        "False Positives": int(fp),
+        "False Negatives": int(fn),
+        "True Positives": int(tp),
+    }
+
+
 def plot_confusion_matrix(
     models,
     X_test,
@@ -157,8 +177,8 @@ def write_results_markdown(
     metric_columns = ["Accuracy", "Precision", "Recall", "F1", "ROC-AUC"]
     display_df[metric_columns] = display_df[metric_columns].round(3)
     best_recall = display_df.sort_values(
-        ["Recall", "False Negatives", "ROC-AUC"],
-        ascending=[False, True, False],
+        ["Recall", "False Negatives", "Precision", "False Positives", "ROC-AUC"],
+        ascending=[False, True, False, True, False],
     ).iloc[0]
 
     content = [

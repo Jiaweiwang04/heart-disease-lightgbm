@@ -4,7 +4,7 @@
 
 This project uses the UCI Heart Disease dataset to build a binary classification workflow for predicting whether a patient has heart disease.
 
-The current work has completed exploratory analysis, preprocessing, baseline model training and evaluation, and the first untuned LightGBM model. The next stage is to improve model development and add interpretability with SHAP.
+The current work has completed exploratory analysis, preprocessing, baseline model training and evaluation, the first untuned LightGBM model, LightGBM threshold tuning, and LightGBM hyperparameter tuning. The next stage is to add interpretability with SHAP.
 
 In medical risk prediction, false negatives are particularly important because they represent patients with heart disease who are incorrectly classified as low-risk.
 
@@ -18,6 +18,8 @@ In medical risk prediction, false negatives are particularly important because t
 - [x] LightGBM model training
 - [x] LightGBM evaluation
 - [x] LightGBM feature importance
+- [x] LightGBM threshold tuning
+- [x] LightGBM hyperparameter tuning
 - [ ] SHAP analysis
 
 ## Dataset
@@ -101,18 +103,61 @@ Initial LightGBM settings:
 
 No hyperparameter tuning has been performed yet.
 
+### 5. LightGBM Threshold Tuning
+
+Notebook:
+
+- `notebooks/05_lightgbm_threshold_tuning.ipynb`
+
+The threshold tuning notebook keeps the same LightGBM hyperparameters and changes only the probability cutoff used to classify patients as positive or negative.
+
+To avoid selecting a threshold directly on the test set, the notebook creates an internal validation split from the existing training data. The original test set is used only for final evaluation.
+
+Selected threshold:
+
+- `0.11`
+
+This threshold greatly reduces false negatives, but it also increases false positives. That tradeoff is expected when recall is prioritized for a screening-style medical task.
+
+### 6. LightGBM Hyperparameter Tuning
+
+Notebook:
+
+- `notebooks/06_lightgbm_hyperparameter_tuning.ipynb`
+
+The hyperparameter tuning notebook uses a small randomized search with cross-validated ROC-AUC on an internal training split. The original held-out test set remains untouched until final evaluation.
+
+Best tuned parameters:
+
+- `n_estimators=100`
+- `learning_rate=0.08`
+- `num_leaves=7`
+- `max_depth=3`
+- `min_child_samples=50`
+- `subsample=1.0`
+- `colsample_bytree=0.9`
+- `reg_alpha=0.1`
+- `reg_lambda=0.0`
+
+The tuned model is evaluated with both the default threshold `0.50` and a validation-selected threshold `0.20`.
+
 ## Model Comparison Results
 
 Held-out test set results:
 
-| Model | Accuracy | Precision | Recall | F1 | ROC-AUC | False Negatives |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Logistic Regression | 0.842 | 0.835 | 0.892 | 0.863 | 0.926 | 11 |
-| Random Forest | 0.848 | 0.849 | 0.882 | 0.865 | 0.928 | 12 |
-| XGBoost | 0.859 | 0.852 | 0.902 | 0.876 | 0.901 | 10 |
-| LightGBM | 0.842 | 0.848 | 0.873 | 0.860 | 0.928 | 13 |
+| Model | Threshold | Accuracy | Precision | Recall | F1 | ROC-AUC | False Negatives | False Positives |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Logistic Regression | 0.50 | 0.842 | 0.835 | 0.892 | 0.863 | 0.926 | 11 | 18 |
+| Random Forest | 0.50 | 0.848 | 0.849 | 0.882 | 0.865 | 0.928 | 12 | 16 |
+| XGBoost | 0.50 | 0.859 | 0.852 | 0.902 | 0.876 | 0.901 | 10 | 16 |
+| LightGBM | 0.50 | 0.842 | 0.848 | 0.873 | 0.860 | 0.928 | 13 | 16 |
+| LightGBM tuned threshold | 0.11 | 0.766 | 0.706 | 0.990 | 0.824 | 0.928 | 1 | 42 |
+| LightGBM tuned params | 0.50 | 0.875 | 0.869 | 0.912 | 0.890 | 0.927 | 9 | 14 |
+| LightGBM tuned params + threshold | 0.20 | 0.804 | 0.743 | 0.990 | 0.849 | 0.927 | 1 | 35 |
 
-The first untuned LightGBM model has competitive ROC-AUC, but it does not improve the medical-risk-focused metrics. XGBoost currently has the highest recall and the fewest false negatives.
+Hyperparameter tuning improves the default-threshold LightGBM result, reducing false negatives from `13` to `9` and improving recall from `0.873` to `0.912`.
+
+Combining tuned hyperparameters with a tuned threshold keeps false negatives at `1`, while reducing false positives from `42` to `35` compared with the earlier threshold-only LightGBM approach.
 
 Generated evaluation outputs:
 
@@ -122,6 +167,13 @@ Generated evaluation outputs:
 - `reports/figures/lightgbm_confusion_matrix.png`
 - `reports/figures/lightgbm_roc_curve.png`
 - `reports/figures/lightgbm_feature_importance.png`
+- `reports/figures/lightgbm_threshold_tradeoff.png`
+- `reports/figures/lightgbm_tuned_confusion_matrix.png`
+- `reports/figures/lightgbm_hyperparameter_search.png`
+- `reports/figures/lightgbm_tuned_params_confusion_matrices.png`
+- `reports/figures/lightgbm_tuned_params_roc_curve.png`
+- `reports/figures/lightgbm_tuned_params_feature_importance.png`
+- `reports/figures/lightgbm_tuned_params_threshold_tradeoff.png`
 
 ## Repository Structure
 
@@ -150,7 +202,6 @@ The current workflow depends on:
 
 ## Next Steps
 
-- Investigate whether threshold tuning can reduce false negatives
-- Tune LightGBM hyperparameters after establishing the baseline
-- Compare tuned LightGBM against XGBoost and Logistic Regression
 - Add SHAP interpretation as a future interpretability step
+- Review whether the tuned threshold tradeoff is clinically acceptable
+- Consider probability calibration before presenting risk probabilities
