@@ -4,7 +4,7 @@
 
 This project uses the UCI Heart Disease dataset to build a binary classification workflow for predicting whether a patient has heart disease.
 
-The current work has completed exploratory analysis, preprocessing, baseline model training and evaluation, the first untuned LightGBM model, LightGBM threshold tuning, and LightGBM hyperparameter tuning. The next stage is to add interpretability with SHAP.
+The current work has completed exploratory analysis, preprocessing, baseline model training and evaluation, the first untuned LightGBM model, LightGBM threshold tuning, LightGBM hyperparameter tuning, and SHAP interpretation.
 
 In medical risk prediction, false negatives are particularly important because they represent patients with heart disease who are incorrectly classified as low-risk.
 
@@ -20,7 +20,7 @@ In medical risk prediction, false negatives are particularly important because t
 - [x] LightGBM feature importance
 - [x] LightGBM threshold tuning
 - [x] LightGBM hyperparameter tuning
-- [ ] SHAP analysis
+- [x] SHAP analysis
 
 ## Dataset
 
@@ -141,6 +141,35 @@ Best tuned parameters:
 
 The tuned model is evaluated with both the default threshold `0.50` and a validation-selected threshold `0.20`.
 
+### 7. SHAP Interpretation
+
+Notebook:
+
+- `notebooks/07_shap_interpretation.ipynb`
+
+Report:
+
+- `reports/shap_summary.md`
+
+The SHAP notebook explains the tuned LightGBM model on the held-out test set. It does not train a new model variant or change the selected threshold.
+
+Top SHAP features:
+
+| Feature | MeanAbsSHAP |
+| --- | ---: |
+| `cat__cp_asymptomatic` | 0.573 |
+| `num__oldpeak` | 0.460 |
+| `cat__exang_False` | 0.309 |
+| `cat__dataset_Switzerland` | 0.298 |
+| `num__chol` | 0.270 |
+| `cat__ca_0.0` | 0.268 |
+| `cat__sex_Female` | 0.266 |
+| `num__age` | 0.258 |
+| `cat__cp_atypical angina` | 0.246 |
+| `cat__dataset_Cleveland` | 0.206 |
+
+The strongest SHAP signals include chest pain category, ST depression (`oldpeak`), exercise-induced angina, cholesterol, ca, sex, age, and dataset indicators. These are model explanations, not causal claims.
+
 ## Model Comparison Results
 
 Held-out test set results:
@@ -174,6 +203,11 @@ Generated evaluation outputs:
 - `reports/figures/lightgbm_tuned_params_roc_curve.png`
 - `reports/figures/lightgbm_tuned_params_feature_importance.png`
 - `reports/figures/lightgbm_tuned_params_threshold_tradeoff.png`
+- `reports/shap_summary.md`
+- `reports/figures/shap_feature_importance_bar.png`
+- `reports/figures/shap_summary_beeswarm.png`
+- `reports/figures/shap_summary_bar.png`
+- `reports/figures/shap_high_risk_waterfall.png`
 
 ## Repository Structure
 
@@ -198,10 +232,10 @@ The current workflow depends on:
 - scikit-learn
 - xgboost
 - lightgbm
+- shap
 - matplotlib
 
 ## Next Steps
 
-- Add SHAP interpretation as a future interpretability step
 - Review whether the tuned threshold tradeoff is clinically acceptable
 - Consider probability calibration before presenting risk probabilities
