@@ -23,6 +23,15 @@ The preprocessing step drops:
 - `id`, because it is only an identifier
 - `num`, because it is the original disease severity label and would cause label leakage
 
+## Dataset Source
+
+The dataset used in this project is a cleaned version of the UCI Heart Disease dataset obtained from Kaggle.
+
+- Original dataset source: [UCI Machine Learning Repository - Heart Disease](https://archive.ics.uci.edu/dataset/45/heart+disease)
+- Download source: [Kaggle Heart Disease Dataset](https://www.kaggle.com/datasets/redwankarimsony/heart-disease-data)
+
+The classic UCI Heart Disease dataset contains 13 clinical features and one predicted attribute. In this project, the original `num` severity label is converted into a binary target indicating the presence or absence of heart disease.
+
 ## Final Recommendation
 
 Two LightGBM configurations are worth keeping, depending on the goal:
@@ -216,15 +225,11 @@ The strongest SHAP signals include chest pain category, ST depression (`oldpeak`
 - `reports/` - generated reports and figures
 - `README.md` - final project overview
 
-## Environment
+## Dependencies
 
-The notebooks were validated with the conda environment:
+A clean Conda environment file is provided in `environment.yml`.
 
-```powershell
-conda activate ml
-```
-
-Main dependencies:
+Main Python dependencies:
 
 - pandas
 - scikit-learn
